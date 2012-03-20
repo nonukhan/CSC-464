@@ -1,0 +1,8 @@
+#! /bin/sh
+#
+# userlengths shell script
+#
+if test $# -gt 0; then echo "Usage:  $0"; exit; fi
+read first_line
+echo "$first_line L"
+cat -

@@ -1,0 +1,5 @@
+#! /bin/sh
+#
+(for file in $*; do tail -1 $file | sed 's:^:'"$file"'	:'; done) | \
+  sed -e 's/^\([^	]*\)	.*\(likelihood =[^,]*,[^,]*\),.*$/\2 (file = \1)/' | \
+  sort -nr +5 -6 +2 -3

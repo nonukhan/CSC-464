@@ -1,0 +1,6 @@
+#! /bin/sh
+#
+# clean_checkpoints
+#
+if test $# -gt 0; then echo "Usage:  $0"; exit; fi
+rm -f `echo treefile.* | sed -e 's/treefile/checkpoint/g'`

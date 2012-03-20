@@ -1,0 +1,15 @@
+#! /bin/sh
+#
+# treefile shell script
+#
+if test $# -gt 1; then
+   echo "
+Usage:  $0  [format_option]
+        option 1:  Default Newick 8:45 tree
+               2:  prolog fact"
+   exit
+   fi
+read first_line
+echo "$first_line Y"
+if test $# -eq 1; then echo "Y $1"; fi
+cat -

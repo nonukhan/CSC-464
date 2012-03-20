@@ -1,0 +1,43 @@
+#! /bin/sh
+#
+#  iterate_rates  file_name_root  program_options  [cycles]
+
+if test $# -lt 2; then
+    echo "Usage: iterate_rates  file_name_root  [cycles]";
+    exit
+fi
+
+root0="$1"
+if   test -f "${root0}.phylip"; then suf=phylip
+elit test -f "${root0}.phy";    then suf=phy
+else
+    echo "Could not find sequence file ${root0}.phy[lip]"
+    exit
+fi
+
+root=`echo "$root0" | sed 's&^.*/\([^/][^/]*\)$&\1&'`
+
+if test $# -gt 2; then cycles=$3; else cycles=0; fi
+
+tree1=`ls -1 ${root}_*.tree | tail -1`
+if test -z "$tree1"; then
+    transition 2 < ${root}.$suf | treefile | quickadd | global 0 0 | fastDNAml >/dev/null
+    mv `ls -t treefile.*|head -1`  "${root}.dummy_tree"
+    usertree  "${root}.dummy_tree" < ${root0}.$suf | n_categories 35 | treefile | DNAml_rates > /dev/null
+    mv `ls -t treefile.*|head -1`
+    v0=0;
+    v1=1;
+else
+    v0=`echo "$tree1" | sed 's/^.*_\([0-9][0-9]*)\.tree$/\1/'`
+    v1=`expr $v0 + 1`
+fi
+
+if test ! -f ${root}_${v0}.$suf; then ln -s ${root}.$suf ${root}_${v0}.$suf; fi
+
+usertree  $tree1 < ${root}_${v0}.$suf | n_categories 35 | treefile | frequencies | DNAml_rates > ${root}_${v0}.rates
+
+mv  weight_rate.*  ${root}_${v0}.wr
+
+if test ! -f ${root}_${v1}.$suf; then ln -s ${root}.$suf ${root}_${v1}.$suf; fi
+
+fastDNAml_loop -m 20 ${root}_${v1}.$suf 3 "frequencies | weights_categories ${root}_${v0}.wr"

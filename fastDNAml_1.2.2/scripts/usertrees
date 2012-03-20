@@ -1,0 +1,12 @@
+#! /bin/sh
+#
+# usertree shell script
+#
+#  Modified July 14, 1992 to accept phylip_tree prolog fact.
+#
+if test $# -lt 1 -o $# -gt 2; then echo "Usage: $0 treefile [ L ]"; exit; fi
+read first_line
+echo "$first_line U $2"
+cat -
+egrep '((;)|(\)\.))[ 	]*$' $1 | wc -l
+cat $1

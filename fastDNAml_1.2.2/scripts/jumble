@@ -1,0 +1,10 @@
+#! /bin/sh
+#
+# jumble shell script
+#
+if test $# -gt 1; then echo "Usage:  $0  [ seed ]"; exit; fi
+read first_line
+if test $# -lt 1; then random=$$ ; else random=$1 ; fi
+echo "$first_line J"
+echo "J $random"
+cat -

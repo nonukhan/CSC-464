@@ -1,0 +1,18 @@
+#! /bin/sh
+#
+# Convert one tree per line into PAUP (NEXUS) tree file
+# Accepts input from named file(s) or standard input
+#
+echo "#NEXUS"
+echo ""
+echo "Begin Trees;"
+if test $# -eq 0; then
+   egrep -n "." | sed -e 's/:/ = /' -e 's/^/  utree /'
+else
+   i=0
+   for file in $*; do
+     i=`expr $i + 1`
+     sed -e 's/^/  utree '"$i"' = /' $file
+   done
+fi
+echo "Endblock;"

@@ -1,0 +1,73 @@
+
+fastDNAml, version 1.2.1, March 9, 1998
+
+Based on Joseph Felsenstein's
+
+   Nucleic acid sequence Maximum Likelihood method, version 3.3
+
+5 Species, 114 Sites
+
+Quick add (only local branches initially optimized) in effect
+
+Restart option in effect.  Sequence addition will start from appended tree.
+
+Rearrangements of partial trees may cross 0 branches.
+Rearrangements of full tree may cross 0 branches.
+
+Total weight of positions in analysis = 114
+There are 41 distinct data patterns (columns)
+
+Empirical Base Frequencies:
+
+   A       0.18570
+   C       0.24823
+   G       0.31783
+  T(U)     0.24823
+
+Transition/transversion ratio =   2.000000
+
+(Transition/transversion parameter =   1.571835)
+
+Restarting from tree with the following sequences:
+   Sequence1
+   Sequence2
+   Sequence4
+   Sequence5
+
+Adding species:
+   Sequence3
+      Tested 5 alternative trees
+      Ln Likelihood =    -379.14992
+
+Examined 6 trees
+
+   +--------- Sequence5
+---2  
+   !  +------------------- Sequence4
+   +--1  
+   !  !                                      +-------------- Sequence3
+   !  +--------------------------------------3  
+   !                                         +------------------- Sequence2
+   !  
+   +------------------------------------------- Sequence1
+
+Remember: this is an unrooted tree!
+
+Ln Likelihood =    -379.14992
+
+ Between        And             Length      Approx. Confidence Limits
+ -------        ---             ------      ------- ---------- ------
+   2          Sequence5         0.02776     (     zero,     0.06734) **
+   2             1              0.00396     (     zero,     0.03594)
+   1          Sequence4         0.06711     (  0.01506,     0.12427) **
+   1             3              0.13351     (  0.05915,     0.21875) **
+   3          Sequence3         0.04953     (  0.00347,     0.09953) **
+   3          Sequence2         0.06542     (  0.01357,     0.12233) **
+   2          Sequence1         0.15529     (  0.07648,     0.24643) **
+
+     *  = significantly positive, P < 0.05
+     ** = significantly positive, P < 0.01
+
+
+Tree also written to treefile.24367
+

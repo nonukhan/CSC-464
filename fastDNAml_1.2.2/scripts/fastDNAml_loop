@@ -1,0 +1,118 @@
+#! /bin/sh
+#
+comm=`echo "$0" | sed -e 's&^.*/&&'`
+cleanflag="-noclean"
+maxflag="-max"
+niceflag="-nice"
+stdopt=""
+
+jumbles=10
+nice=10
+cleanUp=1
+
+#  The spaces in the echo and grep are required because of a "feature" that
+#  causes /bin/sh echo to consume ANY leading argument that begins with -n.
+
+while echo " $1" | grep "^ -" >/dev/null; do
+    if   test $# -lt 2;        then break
+    elif test $1 = $maxflag;   then jumbles=$2; shift; shift
+    elif test $1 = "-m";       then jumbles=$2; shift; shift
+    elif test $1 = $cleanflag; then cleanUp=0; shift
+    elif test $1 = "-c";       then cleanUp=0; shift
+    elif test $1 = $niceflag;  then nice=$2; shift; shift
+    elif test $1 = "-n";       then nice=$2; shift; shift
+    elif test $1 = "-";        then shift; break
+    else echo "Bad flag:  $*"; while test $# -gt 0; do shift; done; break
+    fi
+done
+
+if test $# -eq 2; then
+    opts="$stdopt"
+elif test $# -eq 3; then
+    if test -n "$3"; then opts="$stdopt | $3"
+    else opts="$stdopt"
+    fi
+else
+    cleanprm="[$cleanflag]"
+    maxprm="[$maxflag maxjumble]"
+    niceprm="[$niceflag nicevalue]"
+    optprm="[ "'"'"dnaml_opt1 [ | dnaml_opt2 [...]]"'"'" ]"
+    echo "
+Usage: $comm $maxprm $cleanprm $niceprm \\
+                in_file  n_best  $optprm
+
+For the given input file, the sequence input order is jumbled (up to maxjumble
+times) until the same best tree is found n_best times.  The output files are
+then reduced to a summary of the scores produced by jumbling, and one example
+of the best tree.
+
+The jumble option is included by the script and should not be specified by the
+user or in the data file.  Additional fastDNAml program options are enclosed in
+quotes, and separated by vertical bars (|).
+
+Flags and parameters:
+
+    in_file -- name of the input data file
+    n_best -- input order is jumbled (up to maxjumble times) until same tree
+              is found n_best times
+    $maxflag maxjumble -- maximum attempts at replicating inferred tree
+                      (Default=10)
+    $niceflag nicevalue -- run fastDNAml with specified nice value (Default=10)
+    $cleanflag -- inhibits cleanup of the output files
+"
+    exit
+fi
+
+if test $cleanUp -ne 0; then cleanflag=""; fi
+
+if   test -f "$1"; then
+    root=`echo "$1" | sed -e 's/\.phylip$//' -e 's/\.phy$//'`; in="$1"
+elif test -f "$1.phy"; then
+    root="$1"; in="$1.phy"
+elif test -f "$1.phylip"; then
+    root="$1"; in="$1.phylip"
+else
+    echo "$comm: Unable to find input file: $1"; exit
+fi
+
+out=`echo "$root" | sed -e 's&^.*/&&'`
+
+#  Don't clobber an existing file
+
+if test $cleanUp -ne 0 -a \( -f "$out.tree" -o -f "$out.out" \); then
+    echo ""
+    echo "$comm: File(s) with the name(s) $out.out and/or $out.tree"
+    echo "already exist and would be clobbered by 'cleaning' the jumble output"
+    echo "files.  Move them to a new name and try again."
+    echo ""
+    exit
+fi
+
+#  Loop over jumble orders:
+
+while
+    if test $cleanUp -ne 0 -a -f "$out.summary"; then
+        echo ""
+        echo "$comm: Jumbling stopped by existence of summary file:"
+        echo "$out.summary"
+        echo ""
+        jumbles=0
+        nBest=0
+        nJumble=0
+    elif test `ls -d $out.[0-9]* 2>/dev/null | wc -l` -gt 0; then
+        nJumble=`grep '^Ln Likelihood' $out.[0-9]* /dev/null | wc -l`
+        nBest=`grep '^Ln Likelihood' $out.[0-9]* /dev/null |
+              sed -e 's/^.*:Ln Likelihood =\(.*\)$/\1/g' | sort -nr +0 |
+              awk 'BEGIN{c=0} NR==1{b=$1-0.001} $1>=b{c++} END{print c}'`
+    else
+        nBest=0
+        nJumble=0
+    fi
+
+    test $nBest -lt $2 -a $nJumble -lt $jumbles
+do
+    eval "jumble < $in $opts |
+          nice -$nice out.PID fastDNAml $out" >/dev/null || exit
+done
+
+if test $cleanUp -ne 0; then clean_jumbles "$out"; fi

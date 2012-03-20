@@ -1,0 +1,31 @@
+#! /bin/sh
+#
+# Run a program, appending its process id to its output file name
+#
+outflag="-o"
+
+if test $# -eq 2; then
+    out="$2"
+    set - "$1"
+else
+    while echo " $1" | grep "^ -" >/dev/null; do
+        if test $# -lt 2;         then break
+        elif test $1 = $outflag;  then out=$2; shift; shift
+        elif test $1 = "-out";    then out=$2; shift; shift
+        elif test $1 = "-";       then shift; break
+        else echo "Bad flag:  $*" >&2; while test $# -gt 0; do shift; done; break
+        fi
+    done
+
+    if test $# -lt 1; then
+        comm=`echo $0 | sed -e 's&^.*/&&g'`
+        echo "
+Usage:  $comm  program  outfile
+   or   $comm  $outflag outfile  program  [program_args]
+" >&2
+        exit
+    fi
+fi
+
+echo "$$"
+exec "$@" > "${out}.$$"

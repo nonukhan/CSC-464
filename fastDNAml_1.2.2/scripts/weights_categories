@@ -1,0 +1,8 @@
+#! /bin/sh
+#
+#  weights_categories  option shell script
+#
+if test $# -ne 1; then echo "Usage:  $0  weights+categories_data_file"; exit; fi
+read first_line
+echo "$first_line W C"
+cat $1 -

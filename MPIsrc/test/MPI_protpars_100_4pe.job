@@ -1,0 +1,62 @@
+#!/bin/sh
+#PBS -q batch
+#PBS -j oe
+#PBS -l walltime=15:00
+#PBS -l ncpus=4
+#-------------------------------------------------------
+# Set up parallel environment on the cluster.
+# These variables may need to be modified for
+# your specific environment:
+#   1) Point MYHOME to MPIsrc directory
+#   2) Point SCRATCH to scratch/temp directory
+#   3) Point PE to be the number of processors to be 
+#      used by the run (ie the number of MPI processes)
+#--------------------------------------------------------
+MYHOME=$HOME/MPIsrc
+export MYHOME
+#
+SCRATCH=/tmp
+export SCRATCH
+#
+PE=4
+export PE
+#---------------------------------------------------
+# Set additional environment variables pointing to
+# the executable name, plus the bin, test, and 
+# result directories: 
+#---------------------------------------------------
+PGMNAME=protpars
+export PGMNAME
+#
+MYBIN=$MYHOME/bin
+export MYBIN
+#
+MYTEST=$MYHOME/test
+export MYTEST
+#
+MYRESULT=$MYHOME/result
+export MYRESULT
+#----------------------------------------------
+# Set additional run parameters and Copy files
+#----------------------------------------------
+echo $PE
+set -v
+set -x
+mkdir $SCRATCH/$$
+cd $SCRATCH/$$
+cp $MYBIN/MPI${PGMNAME} .
+cp $MYTEST/MPI_${PGMNAME}_100.stdin stdin 
+cp $MYTEST/MPI_PROTEIN_100.boot infile
+#--------------------------
+# Run the MPI Executable
+#--------------------------
+time mpirun -np ${PE} ./MPI${PGMNAME}
+#----------------------------------------------
+# Save the results, clean up scratch directory
+#----------------------------------------------
+cp outfile $MYRESULT/MPI_${PGMNAME}_100_${PE}pe.outfile
+cp outtree $MYRESULT/MPI_${PGMNAME}_100_${PE}pe.outtree
+#
+rm infile
+rm stdin
+rm -r $SCRATCH/$$

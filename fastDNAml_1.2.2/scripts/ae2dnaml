@@ -1,0 +1,35 @@
+#! /bin/sh
+#
+# ae2dnaml ae2_file_name  [ "dnaml_opt1 | dnaml_opt2 | ..." ]
+#
+temp_file="$1.$$.phy"
+stdopt="quickadd | treefile | frequencies"
+
+if test $# -eq 1; then
+    opts=$stdopt;
+elif test $# -eq 2; then
+    if test -n "$2"; then opts="$stdopt | $2"
+    else opts="$stdopt"
+    fi
+else
+    comm=`echo $0 | sed -e 's&^.*/&&g'`
+    optprm="[ "'"'"dnaml_opt1 [ | dnaml_opt2 [...]]"'"'" ]"
+    echo "
+
+Usage: $comm  ae2_file  $optprm
+
+Quickadd, frequencies and treefile are included by the script and should
+not be specified by the user.  Additional fastDNAml program options are
+enclosed in quotes, and separated by vertical bars (|).
+"
+    exit
+fi
+
+convp -ae2 "$1" -phylip "$temp_file"
+echo "Working on tree"
+
+id=`eval "cat < $temp_file | $opts | out.PID -o $1 fastDNAml"`
+
+rm -f "$temp_file" checkpoint.$id
+mv  treefile.$id  $1.tree
+#treetool2  $1.tree

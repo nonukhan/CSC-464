@@ -1,0 +1,73 @@
+
+fastDNAml, version 1.2.1, March 9, 1998
+
+Based on Joseph Felsenstein's
+
+   Nucleic acid sequence Maximum Likelihood method, version 3.3
+
+5 Species, 114 Sites
+
+Quick add (only local branches initially optimized) in effect
+
+Rearrangements of partial trees may cross 1 branch.
+Rearrangements of full tree may cross 1 branch.
+
+Total weight of positions in analysis = 114
+There are 41 distinct data patterns (columns)
+
+Base Frequencies:
+
+   A       0.25000
+   C       0.25000
+   G       0.25000
+  T(U)     0.25000
+
+Transition/transversion ratio =   0.501000
+
+(Transition/transversion parameter =   0.001000)
+
+Adding species:
+   Sequence1
+   Sequence2
+   Sequence3
+   Sequence4
+      Tested 3 alternative trees
+      Ln Likelihood =    -342.76283
+   Sequence5
+      Tested 5 alternative trees
+      Ln Likelihood =    -371.36406
+      Doing local rearrangements
+      Tested 4 alternative trees
+
+Examined 13 trees
+
+                                      +------ Sequence5
+   +----------------------------------3  
+   !                                  +--------------------------- Sequence4
+---2  
+   !                           +--------------------------- Sequence2
+   +---------------------------1  
+   !                           +--------------------------- Sequence3
+   !  
+   +---------------------------------- Sequence1
+
+Remember: this is an unrooted tree!
+
+Ln Likelihood =    -371.36406
+
+ Between        And             Length      Approx. Confidence Limits
+ -------        ---             ------      ------- ---------- ------
+   2             3              0.07952     (  0.02075,     0.14329) **
+   3          Sequence5         0.02019     (     zero,     0.05147) *
+   3          Sequence4         0.06439     (  0.01576,     0.11638) **
+   2             1              0.06948     (  0.01584,     0.12726) **
+   1          Sequence2         0.05617     (  0.00822,     0.10739) **
+   1          Sequence3         0.05714     (  0.00917,     0.10839) **
+   2          Sequence1         0.08148     (  0.02287,     0.14505) **
+
+     *  = significantly positive, P < 0.05
+     ** = significantly positive, P < 0.01
+
+
+Tree also written to treefile.24382
+

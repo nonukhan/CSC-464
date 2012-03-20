@@ -1,0 +1,9 @@
+#! /bin/sh
+#
+# min_info  shell script
+#
+if test $# -ne 1; then echo "Usage:  $0  min_unambiguous_residues"; exit; fi
+read first_line
+echo "$first_line M"
+echo "M $1"
+cat -

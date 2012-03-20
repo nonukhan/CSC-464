@@ -1,0 +1,3 @@
+#! /bin/sh
+#
+grep '^Ln Likelihood' $* /dev/null | sed 's/^\([^:]*\):\(.*\)$/\2  (file: \1)/g' | sort -nr +3

@@ -1,0 +1,29 @@
+#! /bin/sh
+#
+# restart shell script
+#
+if test $# -ne 1; then echo "Usage:  $0  checkpoint_file"; exit; fi
+file="$1"
+
+if test ! -f "$file"; then echo "$0: $file: File not found"; exit; fi
+lastTwoEnds=`egrep -n '((;)|(\)\.))[ 	]*$' "$file" |
+             sed 's/^\([0-9]*\):.*$/\1/' |
+             tail -2`
+nFound=`echo $lastTwoEnds | wc -w`
+if test $nFound -eq 0; then
+    echo "$0: Unable to locate end of tree(s) in file"
+    exit
+fi
+
+read first_line
+echo "$first_line R"
+cat -
+# tail -1 "$file"
+
+if test $nFound -eq 1; then
+    cat "$file"
+else
+    penultimateEnd=`echo $lastTwoEnds | sed 's/^\([0-9]*\).*$/\1/'`
+    lastStart=`expr $penultimateEnd + 1`
+    tail +$lastStart "$file"
+fi

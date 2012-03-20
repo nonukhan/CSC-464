@@ -1,0 +1,13 @@
+#! /bin/sh
+#
+# global shell script
+#
+if test $# -gt 2
+   then echo "Usage:  $0  [ full_tree_range [ partial_tree_ range ]]"
+   exit
+   fi
+read first_line
+echo "$first_line G"
+if test $# -eq 1; then echo "G $1"    ; fi
+if test $# -eq 2; then echo "G $1 $2" ; fi
+cat -

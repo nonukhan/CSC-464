@@ -1,0 +1,10 @@
+#! /bin/sh
+#
+# frequencies shell script
+#
+if test $# -ne 4; then echo "Usage:  $0  fA  fC  fG  fT"; exit; fi
+if test $# -gt 0; then echo "Usage:  $0"; exit; fi
+read first_line
+echo "$first_line F"
+echo "F  $1 $2 $3 $4"
+cat -
