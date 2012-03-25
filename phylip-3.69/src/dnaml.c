@@ -2,6 +2,15 @@
 #include "phylip.h"
 #include "seq.h"
 
+#define TIMINGS
+#define CALLCOUNT
+
+#ifdef TIMINGS
+#include "../../simple-timing/timekeeper.c"
+timekeeper *eval_tk, *all_tk, *slopecurv_tk;
+
+#endif
+
 /* version 3.6. (c) Copyright 1993-2004 by the University of Washington.
    Written by Joseph Felsenstein, Akiko Fuseki, Sean Lamont, Andrew Keeffe,
    Dan Fineman, and Patrick Colacurcio.
@@ -112,6 +121,9 @@ vall *mp=NULL;
 
 void dnamlcopy(tree *a, tree *b, long nonodes, long categs)
 {
+#ifdef CALLCOUNT
+	printf("dnamlcopy\n");
+#endif
   /* copies tree a to tree b*/
   /* assumes bifurcation (OK) */
   long i, j;
@@ -157,6 +169,9 @@ void dnamlcopy(tree *a, tree *b, long nonodes, long categs)
 
 void getoptions()
 {
+#ifdef CALLCOUNT
+	printf("getoptions\n");
+#endif
   /* interactively set options */
   long i, loopcount, loopcount2;
   Char ch;
@@ -501,6 +516,9 @@ void getoptions()
 
 void reallocsites(void)
 {
+#ifdef CALLCOUNT
+	printf("reallocsites\n");
+#endif
   long i;
 
   for (i=0; i < spp; i++) {
@@ -526,6 +544,9 @@ void reallocsites(void)
 
 void allocrest()
 {
+#ifdef CALLCOUNT
+	printf("allocrest\n");
+#endif
   long i;
 
   y = (Char **) Malloc(spp*sizeof(Char *));
@@ -544,6 +565,9 @@ void allocrest()
 
 void doinit()
 { /* initializes variables */
+#ifdef CALLCOUNT
+	printf("doinit\n");
+#endif
 
   inputnumbers(&spp, &sites, &nonodes2, 1);
   getoptions();
@@ -563,6 +587,9 @@ void doinit()
 
 void inputoptions()
 {
+#ifdef CALLCOUNT
+	printf("inputoptions\n");
+#endif
   long i;
 
   if (!firstset && !justwts) {
@@ -591,6 +618,9 @@ void inputoptions()
 
 void makeweights()
 {
+#ifdef CALLCOUNT
+	printf("makeweights\n");
+#endif
   /* make up weights vector to avoid duplicate computations */
   long i;
 
@@ -627,6 +657,9 @@ void makeweights()
 
 void getinput()
 {
+#ifdef CALLCOUNT
+	printf("getinput\n");
+#endif
   /* reads the input data */
   inputoptions();
   if (!freqsfrom)
@@ -669,6 +702,9 @@ void getinput()
 
 void inittable_for_usertree(FILE *intree)
 {
+#ifdef CALLCOUNT
+	printf("inittable_for_usertree\n");
+#endif
   /* If there's a user tree, then the ww/zz/wwzz/vvzz elements need
      to be allocated appropriately. */
   long num_comma;
@@ -699,6 +735,9 @@ void inittable_for_usertree(FILE *intree)
 
 void freetable()
 {
+#ifdef CALLCOUNT
+	printf("freetable\n");
+#endif
   long i, j;
  
   for (i = 0; i < rcategs; i++) {
@@ -720,6 +759,9 @@ void freetable()
 
 void inittable()
 {
+#ifdef CALLCOUNT
+	printf("inittable\n");
+#endif
   /* Define a lookup table. Precompute values and print them out in tables */
   long i, j;
   double sumrates;
@@ -800,6 +842,13 @@ void inittable()
 
 double evaluate(node *p, boolean saveit)
 {
+#ifdef CALLCOUNT
+	printf("evaluate\n");
+#endif
+#ifdef TIMINGS
+	get_start_time(eval_tk);
+#endif 
+	
   contribarr tterm;
   double sum, sum2, sumc, y, lz, y1, z1zz, z1yy, prod12, prod1, prod2, prod3,
          sumterm, lterm;
@@ -882,25 +931,39 @@ double evaluate(node *p, boolean saveit)
     sum2 += probcat[i] * like[i];
   sum += log(sum2);
   curtree.likelihood = sum;
-  if (!saveit || auto_ || !usertree)
+	if (!saveit || auto_ || !usertree) {
+#ifdef TIMINGS
+		get_stop_time(eval_tk);
+#endif
     return sum;
+	}
   if(which <= shimotrees)
     l0gl[which - 1] = sum;
   if (which == 1) {
     maxwhich = 1;
     maxlogl = sum;
+#ifdef TIMINGS
+	  get_stop_time(eval_tk);
+#endif
     return sum;
   }
   if (sum > maxlogl) {
     maxwhich = which;
     maxlogl = sum;
   }
+#ifdef TIMINGS
+	get_stop_time(eval_tk);
+#endif
+	
   return sum;
 }  /* evaluate */
 
 
 void alloc_nvd (long num_sibs, nuview_data *local_nvd)
 {
+#ifdef CALLCOUNT
+	printf("alloc_nvd\n");
+#endif
   /* Allocate blocks of memory appropriate for the number of siblings
      a given node has */
   local_nvd->yy     = (double *) Malloc( num_sibs * sizeof (double));
@@ -917,6 +980,9 @@ void alloc_nvd (long num_sibs, nuview_data *local_nvd)
 
 void free_nvd (nuview_data *local_nvd)
 {
+#ifdef CALLCOUNT
+	printf("free_nvd\n");
+#endif
   /* The natural complement to the alloc version */
   free (local_nvd->yy);
   free (local_nvd->wwzz);
@@ -932,6 +998,9 @@ void free_nvd (nuview_data *local_nvd)
 
 void nuview(node *p)
 {
+#ifdef CALLCOUNT
+	printf("nuview\n");
+#endif
   long i, j, k, l,num_sibs, sib_index;
   nuview_data *local_nvd = NULL;
   node *sib_ptr, *sib_back_ptr;
@@ -1074,6 +1143,13 @@ void nuview(node *p)
 
 void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 {
+#ifdef CALLCOUNT
+	printf("slopecurve\n");
+#endif
+#ifdef TIMINGS
+	get_start_time(slopecurv_tk);
+#endif
+	
    /* compute log likelihood, slope and curvature at node p */
   long i, j, k, lai;
   double sum, sumc, sumterm, lterm, sumcs, sumcc, sum2, slope2, curve2,
@@ -1130,10 +1206,14 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
       slopeterm[i][j] = zzs * aa + z1s * bb;
       curveterm[i][j] = zzc * aa + z1c * bb;
     }
+	  
+	  // REDUCTION
     sumterm = 0.0;
     for (j = 0; j < rcategs; j++)
       sumterm += probcat[j] * term[i][j];
     lterm = log(sumterm) + p->underflows[i] + q->underflows[i];
+	  
+	  // PARALLEL
     for (j = 0; j < rcategs; j++) {
       term[i][j] = term[i][j] / sumterm;
       slopeterm[i][j] = slopeterm[i][j] / sumterm;
@@ -1141,6 +1221,8 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
     }
     sum += aliasweight[i] * lterm;
   }
+	
+	// PARALLEL!
   for (i = 0; i < rcategs; i++) {
     thelike[i] = 1.0;
     theslope[i] = 0.0;
@@ -1209,11 +1291,18 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 
   /* Expressed in terms of *slope to prevent overflow */
   (*curve) = curve2 / sum2 - *slope * *slope;
+	
+#ifdef TIMINGS
+	get_stop_time(slopecurv_tk);
+#endif
 } /* slopecurv */
 
 
 void makenewv(node *p)
 {
+#ifdef CALLCOUNT
+	printf("makenewv\n");
+#endif
   /* Newton-Raphson algorithm improvement of a branch length */
   long it, ite;
   double y, yold=0, yorig, like, slope, curve, oldlike=0;
@@ -1264,6 +1353,9 @@ void makenewv(node *p)
 
 void update(node *p)
 {
+#ifdef CALLCOUNT
+	printf("update\n");
+#endif
   long num_sibs, i;
   node* sib_ptr;
 
@@ -1292,6 +1384,9 @@ void update(node *p)
 
 void smooth(node *p)
 {
+#ifdef CALLCOUNT
+	printf("smooth\n");
+#endif
   long i, num_sibs;
   node *sib_ptr;
   
@@ -1315,6 +1410,9 @@ void smooth(node *p)
 
 void insert_(node *p, node *q, boolean dooinit)
 {
+#ifdef CALLCOUNT
+	printf("insert_\n");
+#endif
   /* Insert q near p */
   /* assumes bifurcation (OK) */
   long i;
@@ -1348,6 +1446,9 @@ void insert_(node *p, node *q, boolean dooinit)
 
 void dnaml_re_move(node **p, node **q)
 {
+#ifdef CALLCOUNT
+	printf("dnaml_re_move\n");
+#endif
   /* remove p and record in q where it was */
   long i;
 
@@ -1374,6 +1475,9 @@ void dnaml_re_move(node **p, node **q)
 
 void buildnewtip(long m, tree *tr)
 {
+#ifdef CALLCOUNT
+	printf("buildnewtip\n");
+#endif
   node *p;
 
   p = tr->nodep[nextsp + spp - 3];
@@ -1385,6 +1489,9 @@ void buildnewtip(long m, tree *tr)
 
 void buildsimpletree(tree *tr)
 {
+#ifdef CALLCOUNT
+	printf("buildsimpletree\n");
+#endif
   hookup(tr->nodep[enterorder[0] - 1], tr->nodep[enterorder[1] - 1]);
   tr->nodep[enterorder[0] - 1]->v = 0.1;
   tr->nodep[enterorder[0] - 1]->back->v = 0.1;
@@ -1398,6 +1505,9 @@ void buildsimpletree(tree *tr)
 
 void addtraverse(node *p, node *q, boolean contin)
 {
+#ifdef CALLCOUNT
+	printf("addtraverse\n");
+#endif
   /* try adding p at q, proceed recursively through tree */
   long i, num_sibs;
   double like, vsave = 0;
@@ -1443,6 +1553,9 @@ void addtraverse(node *p, node *q, boolean contin)
 
 void freelrsaves()
 {
+#ifdef CALLCOUNT
+	printf("freelrsaves\n");
+#endif
   long i,j;
   for ( i = 0 ; i < NLRSAVES ; i++ ) {
     for (j = 0; j < oldendsite; j++)
@@ -1457,6 +1570,9 @@ void freelrsaves()
 
 void resetlrsaves() 
 {
+#ifdef CALLCOUNT
+	printf("resetlrsaves\n");
+#endif
   freelrsaves();
   alloclrsaves();
 }
@@ -1464,6 +1580,9 @@ void resetlrsaves()
 
 void alloclrsaves()
 {
+#ifdef CALLCOUNT
+	printf("alloclrsaves\n");
+#endif
   long i,j;
 
   lrsaves = Malloc(NLRSAVES * sizeof(node*));
@@ -1479,6 +1598,9 @@ void alloclrsaves()
 
 void globrearrange() 
 {
+#ifdef CALLCOUNT
+	printf("globrearrange\n");
+#endif
   /* does global rearrangements */
   tree globtree;
   tree oldtree;
@@ -1562,6 +1684,9 @@ void globrearrange()
 
 void rearrange(node *p, node *pp)
 {
+#ifdef CALLCOUNT
+	printf("rearrange\n");
+#endif
   /* rearranges the tree locally moving pp around near p */
   /* assumes bifurcation (OK) */
   long i, num_sibs;
@@ -1644,6 +1769,9 @@ void initdnamlnode(node **p, node **grbg, node *q, long len, long nodei,
                         pointarray treenode, pointarray nodep, Char *str, 
                         Char *ch, FILE *intree)
 {
+#ifdef CALLCOUNT
+	printf("initdnamlnode\n");
+#endif
   /* initializes a node */
   boolean minusread;
   double valyew, divisor;
@@ -1695,6 +1823,9 @@ void initdnamlnode(node **p, node **grbg, node *q, long len, long nodei,
 void dnaml_coordinates(node *p, double lengthsum, long *tipy,
                         double *tipmax)
 {
+#ifdef CALLCOUNT
+	printf("dnaml_coordinates\n");
+#endif
   /* establishes coordinates of nodes */
   node *q, *first, *last;
   double xx;
@@ -1735,6 +1866,9 @@ void dnaml_coordinates(node *p, double lengthsum, long *tipy,
 
 void dnaml_printree()
 {
+#ifdef CALLCOUNT
+	printf("dnaml_printree\n");
+#endif
   /* prints out diagram of the tree2 */
   long tipy;
   double scale, tipmax;
@@ -1755,6 +1889,9 @@ void dnaml_printree()
 
 void sigma(node *p, double *sumlr, double *s1, double *s2)
 {
+#ifdef CALLCOUNT
+	printf("sigma\n");
+#endif
   /* compute standard deviation */
   double tt, aa, like, slope, curv;
 
@@ -1779,6 +1916,9 @@ void sigma(node *p, double *sumlr, double *s1, double *s2)
 
 void describe(node *p)
 {
+#ifdef CALLCOUNT
+	printf("describe\n");
+#endif
   /* print out information for one branch */
   long i, num_sibs;
   node *q, *sib_ptr;
@@ -1834,6 +1974,9 @@ void describe(node *p)
 
 void reconstr(node *p, long n)
 {
+#ifdef CALLCOUNT
+	printf("reconstr\n");
+#endif
   /* reconstruct and print out base at site n+1 at node p */
   long i, j, k, m, first, second, num_sibs;
   double f, sum, xx[4];
@@ -1889,6 +2032,9 @@ void reconstr(node *p, long n)
 
 void rectrav(node *p, long m, long n)
 {
+#ifdef CALLCOUNT
+	printf("rectravr\n");
+#endif
   /* print out segment of reconstructed sequence for one branch */
   long i;
   node *q;
@@ -1920,6 +2066,9 @@ void rectrav(node *p, long m, long n)
 
 void summarize()
 {
+#ifdef CALLCOUNT
+	printf("summarize\n");
+#endif
   /* print out branch length information and node numbers */
   long i, j, mm, num_sibs;
   double mode, sum;
@@ -2119,6 +2268,9 @@ void summarize()
 
 void dnaml_treeout(node *p)
 {
+#ifdef CALLCOUNT
+	printf("dnaml_treeout\n");
+#endif
   /* write out file with representation of final tree2 */
   long i, n, w;
   Char c;
@@ -2185,6 +2337,9 @@ void dnaml_treeout(node *p)
 
 void inittravtree(node *p)
 {
+#ifdef CALLCOUNT
+	printf("inittravtree\n");
+#endif
   /* traverse tree to set initialized and v to initial values */
   node *q; 
 
@@ -2207,6 +2362,9 @@ void inittravtree(node *p)
 
 void treevaluate()
 {
+#ifdef CALLCOUNT
+	printf("treevaluate\n");
+#endif
   /* evaluate a user tree */
   long i;
 
@@ -2221,6 +2379,9 @@ void treevaluate()
 
 void dnaml_unroot(node* root, node** nodep, long nonodes) 
 {
+#ifdef CALLCOUNT
+	printf("dnaml_unroot\n");
+#endif
   node *p,*r,*q;
   double newl;
   long i;
@@ -2294,6 +2455,9 @@ void dnaml_unroot(node* root, node** nodep, long nonodes)
 
 void maketree()
 {
+#ifdef CALLCOUNT
+	printf("maketree\n");
+#endif
   long i, j;
   boolean dummy_first, goteof;
   pointarray dummy_treenode=NULL;
@@ -2514,6 +2678,9 @@ void maketree()
 
 void clean_up()
 {
+#ifdef CALLCOUNT
+	printf("cleanup\n");
+#endif
   /* Free and/or close stuff */
   long i;
 
@@ -2546,6 +2713,8 @@ void clean_up()
 
 int main(int argc, Char *argv[])
 {  /* DNA Maximum Likelihood */
+	
+	
 #ifdef MAC
   argc = 1;                /* macsetup("DnaML","");        */
   argv[0] = "DnaML";
@@ -2568,6 +2737,14 @@ int main(int argc, Char *argv[])
     openfile(&weightfile,WEIGHTFILE,"weights file","r",argv[0],weightfilename);
   if (trout)
     openfile(&outtree,OUTTREE,"output tree file","w",argv[0],outtreename);
+
+#ifdef TIMINGS
+	all_tk = create_timekeeper("timing.txt\0", "al\0");
+	eval_tk = create_timekeeper("timing.txt\0", "ev\0");
+	slopecurv_tk = create_timekeeper("timing.txt\0", "sc\0");
+	get_start_time(all_tk);
+#endif
+	
   if (!usertree) nonodes2--;
   for (ith = 1; ith <= datasets; ith++) {
     if (datasets > 1) {
@@ -2584,12 +2761,23 @@ int main(int argc, Char *argv[])
       for (jumb = 1; jumb <= njumble; jumb++)
         maketree();
   }
-
+	
   clean_up();
   printf("\nDone.\n\n");
 #ifdef WIN32
   phyRestoreConsoleAttributes();
 #endif
+	
+#ifdef TIMINGS
+	get_stop_time(all_tk);
+	print_timekeeper(eval_tk);
+	print_timekeeper(slopecurv_tk);
+	print_timekeeper(all_tk);
+	destroy_timekeeper(eval_tk);
+	destroy_timekeeper(slopecurv_tk);
+	destroy_timekeeper(all_tk);
+#endif	
+
   return 0;
 }  /* DNA Maximum Likelihood */
  
