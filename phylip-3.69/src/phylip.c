@@ -304,6 +304,7 @@ void openfile(FILE **fp,const char *filename,const char *filedesc,
       }
     }
 #endif /* ! OVERWRITE_FILES */
+
     of = fopen(file,filemode);
     if (of)
       break;

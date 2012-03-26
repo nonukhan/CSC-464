@@ -4,6 +4,7 @@
 
 //#define TIMINGS
 //#define CALLCOUNT
+#define STD_SETTINGS
 
 #ifdef TIMINGS
 #include "../../simple-timing/timekeeper.c"
@@ -211,6 +212,8 @@ void getoptions()
   treeprint = true;
   interleaved = true;
   loopcount = 0;
+
+#ifndef STD_SETTINGS
   for (;;){
     cleerhome();
     printf("Nucleic acid sequence Maximum Likelihood");
@@ -446,6 +449,8 @@ void getoptions()
       printf("Not a possible option!\n");
     countup(&loopcount, 100);
   }
+#endif /*STD_SETTINGS */
+
   if (gama || invar) {
     loopcount = 0;
     do {
@@ -2713,7 +2718,7 @@ void clean_up()
 
 int main(int argc, Char *argv[])
 {  /* DNA Maximum Likelihood */
-	
+char *fname;
 	
 #ifdef MAC
   argc = 1;                /* macsetup("DnaML","");        */
@@ -2721,7 +2726,10 @@ int main(int argc, Char *argv[])
 #endif
   init(argc,argv);
   progname = argv[0];
-  openfile(&infile,INFILE,"input file","r",argv[0],infilename);
+
+(argc > 1) ? (fname = argv[1]) : (fname = INFILE);
+
+  openfile(&infile,fname,"input file","r",argv[0],infilename);
   openfile(&outfile,OUTFILE,"output file","w",argv[0],outfilename);
   mulsets = false;
   datasets = 1;

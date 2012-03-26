@@ -245,7 +245,7 @@ MALLOCRETURN    *mymalloc(long);
 /*** UI behavior ***/
 
 /* Set to 1 to not ask before overwriting files */
-#define OVERWRITE_FILES 0
+#define OVERWRITE_FILES 1
 
 /*** Static memory parameters ***/
 
