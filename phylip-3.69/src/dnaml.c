@@ -2,8 +2,8 @@
 #include "phylip.h"
 #include "seq.h"
 
-#define TIMINGS
-//#define CALLCOUNT
+//#define TIMINGS
+#define CALLCOUNT
 #define STD_SETTINGS
 
 #ifdef TIMINGS
@@ -178,6 +178,8 @@ void getoptions()
   Char ch;
   boolean didchangecat, didchangercat;
   double probsum;
+// to remove those pesky warnings
+int retval;
 
   fprintf(outfile, "\nNucleic acid sequence Maximum Likelihood");
   fprintf(outfile, " method, version %s\n\n",VERSION);
@@ -462,7 +464,7 @@ void getoptions()
       phyFillScreenColor();
 #endif
       fflush(stdout);
-      scanf("%lf%*[^\n]", &cv);
+      retval = scanf("%lf%*[^\n]", &cv);
       getchar();
       countup(&loopcount, 10);
     } while (cv <= 0.0);
@@ -491,7 +493,7 @@ void getoptions()
         do {
           printf("Fraction of invariant sites?\n");
           fflush(stdout);
-          scanf("%lf%*[^\n]", &invarfrac);
+          retval = scanf("%lf%*[^\n]", &invarfrac);
           getchar();
           countup (&loopcount, 10);
         } while ((invarfrac <= 0.0) || (invarfrac >= 1.0));
