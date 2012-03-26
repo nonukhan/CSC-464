@@ -2,8 +2,8 @@
 #include "phylip.h"
 #include "seq.h"
 
-#define TIMINGS
-#define CALLCOUNT
+//#define TIMINGS
+//#define CALLCOUNT
 
 #ifdef TIMINGS
 #include "../../simple-timing/timekeeper.c"
