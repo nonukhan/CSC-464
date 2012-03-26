@@ -36,13 +36,20 @@ void * clr_malloc(size_t len) {
 
 
 // allocate memory for and initializes a timekeeper stuct
-timekeeper * create_timekeeper(char *filename, char *hook) {
+timekeeper * create_timekeeper(int max_times, char *filename, char *hook) {
 	timekeeper *tk;
 	size_t name_size;
 	
-	tk = (timekeeper *) clr_malloc(sizeof(timekeeper));	
+	// allocate and clear the structs actual memory
+	tk = (timekeeper *) clr_malloc(sizeof(timekeeper));
+
+	tk->max_times = max_times;
+
+	// just allocate memory for timestamps we dont need to clear
+	tk->start = (struct timeval *) err_malloc(max_times*sizeof(struct timeval));
+	tk->stop = (struct timeval *) err_malloc(max_times*sizeof(struct timeval));
 	
-	// if we have a filename place it in timefile, otherwise leave it NULL
+	// if we have a filename place it in the struct, otherwise leave it NULL
 	if (filename) {
 		if( (name_size = strlen(filename)) > 0) {
 			tk->timefile = (char *) clr_malloc(name_size+1);
@@ -69,9 +76,9 @@ timekeeper * create_timekeeper(char *filename, char *hook) {
 // frees timekeeper struct
 void destroy_timekeeper(timekeeper *tk) {
 	
-	// nulling after a free may not be thread safe??????
+	free(tk->start);
+	free(tk->stop);
 	free(tk->timefile);
-	tk->timefile = NULL;
 	free(tk);
 	tk = NULL;
 }
@@ -87,7 +94,7 @@ void get_start_time(timekeeper *tk) {
 		fprintf(stderr, "get_start_time(): previous timer not stopped!\n");
 		return;
 	}
-	if (tk->start_t_num >= MAX_TIMES) {
+	if (tk->start_t_num >= tk->max_times) {
 		fprintf(stderr, "get_start_time(): timekeeper full!\n");
 		return;
 	}
@@ -107,7 +114,7 @@ void get_stop_time(timekeeper *tk) {
 		fprintf(stderr, "get_stop_time(): timer not started!\n");
 		return;
 	}
-	assert(tk->stop_t_num < MAX_TIMES);
+	assert(tk->stop_t_num < tk->max_times);
 	
 	// get timestamp and increment stop_t_num
 	gettimeofday(&tk->stop[tk->stop_t_num++], NULL);
@@ -137,7 +144,7 @@ void print_timekeeper(timekeeper *tk) {
 	}
 	
 	for (i=0; i<tk->start_t_num; i++) {
-		// print "<gr_hook> <start_t> <stop_t>" timefile
+		// print "<gr_hook> <start_t> <stop_t>" to timefile
 		fprintf(outfile, "%s %ld.%06ld, %ld.%06ld\n",
 				tk->gr_hook,
 				(long int)tk->start[i].tv_sec, 

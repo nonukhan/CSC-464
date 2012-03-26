@@ -6,15 +6,17 @@
  */
 
 
+#define MAXTIMES 1000
+
 #include "timekeeper.h"
 
 int main() {
 	int i;
 	timekeeper *tk;
 	
-	tk = create_timekeeper(NULL, NULL);
+	tk = create_timekeeper(MAXTIMES, NULL, NULL);
 		
-	for (i=0; i<MAX_TIMES; i++) {
+	for (i=0; i<MAXTIMES; i++) {
 		get_start_time(tk);
 		get_stop_time(tk);
 	}

@@ -2,7 +2,7 @@
 #include "phylip.h"
 #include "seq.h"
 
-//#define TIMINGS
+#define TIMINGS
 //#define CALLCOUNT
 #define STD_SETTINGS
 
@@ -2719,7 +2719,7 @@ void clean_up()
 int main(int argc, Char *argv[])
 {  /* DNA Maximum Likelihood */
 char *fname;
-	
+
 #ifdef MAC
   argc = 1;                /* macsetup("DnaML","");        */
   argv[0] = "DnaML";
@@ -2727,6 +2727,7 @@ char *fname;
   init(argc,argv);
   progname = argv[0];
 
+// added to allow command line input
 (argc > 1) ? (fname = argv[1]) : (fname = INFILE);
 
   openfile(&infile,fname,"input file","r",argv[0],infilename);
@@ -2747,12 +2748,12 @@ char *fname;
     openfile(&outtree,OUTTREE,"output tree file","w",argv[0],outtreename);
 
 #ifdef TIMINGS
-	all_tk = create_timekeeper("timing.txt\0", "al\0");
-	eval_tk = create_timekeeper("timing.txt\0", "ev\0");
-	slopecurv_tk = create_timekeeper("timing.txt\0", "sc\0");
+	all_tk = create_timekeeper(1, "timing.txt\0", "al\0");
+	eval_tk = create_timekeeper(100, "timing.txt\0", "ev\0");
+	slopecurv_tk = create_timekeeper(2000, "timing.txt\0", "sc\0");
 	get_start_time(all_tk);
 #endif
-	
+
   if (!usertree) nonodes2--;
   for (ith = 1; ith <= datasets; ith++) {
     if (datasets > 1) {
@@ -2767,15 +2768,15 @@ char *fname;
       maketree();
     else
       for (jumb = 1; jumb <= njumble; jumb++)
-        maketree();
+	maketree();
   }
-	
+
   clean_up();
   printf("\nDone.\n\n");
 #ifdef WIN32
   phyRestoreConsoleAttributes();
 #endif
-	
+
 #ifdef TIMINGS
 	get_stop_time(all_tk);
 	print_timekeeper(eval_tk);

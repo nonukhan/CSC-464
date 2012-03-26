@@ -78,10 +78,10 @@ EXEDIR  = ../exe
 # The next two assignments are the invocations of the compiler
 #
 # This one specifies the "cc" C compiler
-CC        = cc
+#CC        = cc
 #
 #  To use GCC instead:
-#CC        = gcc
+CC        = gcc
 #
 # ----------------------------------------------------------------------------
 #
