@@ -1,0 +1,7 @@
+      1 
+      1 [2J[Hdoinit
+      1 allocrest
+      1 ERROR: bad base: E at site    62 of species   1
+      1 getinput
+      1 getoptions
+      1 inputoptions

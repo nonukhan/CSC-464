@@ -1,0 +1,44 @@
+      6 
+      1    1. Sequence1 
+      1 [2J[Hdoinit
+      1    2. Sequence2 
+      1    3. Sequence3 
+      1    4. Sequence4 
+      1    5. Sequence5 
+      1 Adding species:
+     20 addtraverse
+      1 alloclrsaves
+    484 alloc_nvd
+      1 allocrest
+      3 buildnewtip
+      1 buildsimpletree
+      1 cleanup
+      7 describe
+      8 dnaml_coordinates
+      1 dnamlcopy
+      1 dnaml_printree
+      5 dnaml_re_move
+      8 dnaml_treeout
+      1 Done.
+     36 evaluate
+    484 free_nvd
+      1 freetable
+      1 getinput
+      1 getoptions
+      1 inittable
+      7 inittravtree
+      1 inputoptions
+     23 insert_
+    419 makenewv
+      1 maketree
+      1 makeweights
+    484 nuview
+      1 Output written to file "outfile"
+     14 rearrange
+      7 sigma
+    949 slopecurve
+    419 smooth
+      1 summarize
+      1 Tree also written onto file "outtree"
+      1 treevaluate
+    419 update
