@@ -8,16 +8,21 @@
 #define ALL_TIME
 
 #ifdef TIMINGS
-#define TIMEFILE NULL // "../analysis/timing.txt\0"
+#define TIMEFILE NULL // prints to stdout so we can pipe
+#define EVAL_TS 5000
+#define SLOPECURVE_TS 100000
+#define NUVIEW_TS 50000
+#define SMOOTH_TS 50000
 #include "../../simple-timing/timekeeper.c"
 // really only the eval and slopecurve functions are interesting
 timekeeper *eval_tk, *slopecurv_tk, *nuview_tk, *smooth_tk;
+int sm_lock = 0;
 #endif
 
 #ifdef ALL_TIME
-#define TIMEFILE NULL // "../analysis/timing.txt"
-#include "../../simple-timing/timekeeper.c"
-// 
+#define TIMEFILE NULL // so we can pipe 
+#define ALL_TS 1 // # timestamps
+#include "../../simple-timing/timekeeper.c" 
 timekeeper *all_tk;
 #endif
 
@@ -1412,7 +1417,9 @@ void smooth(node *p)
 #endif
 #ifdef TIMINGS
 	// this is a recursive function... timing will be for 1 iteration
-	get_start_time(smooth_tk);
+	if (!sm_lock) {
+		get_start_time(smooth_tk);
+	}
 #endif
 	long i, num_sibs;
 	node *sib_ptr;
@@ -1430,11 +1437,19 @@ void smooth(node *p)
 		sib_ptr = sib_ptr->next;
 		
 		if (polishing || (smoothit && !smoothed)) {
+#ifdef TIMINGS
+			sm_lock++; // we only want to time the t=0 iteration
+#endif
 			smooth(sib_ptr->back);
+#ifdef TIMINGS
+			sm_lock--;
+#endif
 		}
 	}
 #ifdef TIMINGS
-	get_stop_time(smooth_tk);
+	if (!sm_lock) {
+		get_stop_time(smooth_tk);
+	}
 #endif
 }  /* smooth */
 
@@ -2774,13 +2789,13 @@ int main(int argc, Char *argv[])
 		openfile(&outtree,OUTTREE,"output tree file","w",argv[0],outtreename);
 	
 #ifdef TIMINGS
-	eval_tk = create_timekeeper(100, TIMEFILE, "ev\0");
-	slopecurv_tk = create_timekeeper(2000, TIMEFILE, "sc\0");
-	nuview_tk = create_timekeeper(1000, TIMEFILE, "nv\0"); 
-	smooth_tk = create_timekeeper(1000, TIMEFILE, "sm\0");
+	eval_tk = create_timekeeper(EVAL_TS, TIMEFILE, "ev\0");
+	slopecurv_tk = create_timekeeper(SLOPECURVE_TS, TIMEFILE, "sc\0");
+	nuview_tk = create_timekeeper(NUVIEW_TS, TIMEFILE, "nv\0"); 
+	smooth_tk = create_timekeeper(SMOOTH_TS, TIMEFILE, "sm\0");
 #endif
 #ifdef ALL_TIME
-	all_tk = create_timekeeper(1, TIMEFILE, "al\0");
+	all_tk = create_timekeeper(ALL_TS, TIMEFILE, "aa\0");
 	get_start_time(all_tk);
 #endif
 	
@@ -2792,13 +2807,16 @@ int main(int argc, Char *argv[])
 		}
 		ttratio = ttratio0;
 		getinput();
-		if (ith == 1)
+		if (ith == 1) {
 			firstset = false;
-		if (usertree)
+		}
+		if (usertree) {
 			maketree();
-		else
-			for (jumb = 1; jumb <= njumble; jumb++)
+		} else {
+			for (jumb = 1; jumb <= njumble; jumb++) {
 				maketree();
+			}
+		}
 	}
 	
 	clean_up();

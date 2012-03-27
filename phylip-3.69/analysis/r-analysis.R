@@ -13,7 +13,7 @@ get_times_from_file = function(path) {
 	times = list(start_time=start_time, finish_time=finish_time, elapsed_time=elapsed_time)
 }
 
-path = "~/Documents/School/Csc464/project/CSC-464/phylip-3.69/analysis"
+path = "/home/stredger/Documents/464/project/CSC-464/phylip-3.69/analysis"
 file = "114bp-5sp-nv.txt"
 
 # read in times
@@ -33,7 +33,7 @@ mean(times$elapsed_time)
 #points(c_times$std_start_time, c_times$elapsed_time, pch=20, cex=0.5, col=c_col)
 
 # 114-5-sc 1.279288e-05
-# 114-5-all 0.01804522 includes printing of output...
+# 114-5-all 1.804522e-02 includes printing of output...
 # 114-5-sm 5.03386e-05
 # 114-5-ev 1.128742e-05
 # 114-5-nv 6.492615e-06
