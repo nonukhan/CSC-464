@@ -8,6 +8,11 @@
 //#define CALLCOUNT
 #define STD_SETTINGS
 #define ALL_TIME
+#define CUDA
+
+#ifdef CUDA
+#include <math.h>
+#endif
 
 
 /*   */
@@ -208,7 +213,7 @@ void getoptions()
 	boolean didchangecat, didchangercat;
 	double probsum;
 	// to remove those pesky warnings
-	int retval;
+	int retval = 0;
 	
 	fprintf(outfile, "\nNucleic acid sequence Maximum Likelihood");
 	fprintf(outfile, " method, version %s\n\n",VERSION);
@@ -243,6 +248,8 @@ void getoptions()
 	treeprint = true;
 	interleaved = true;
 	loopcount = 0;
+	loopcount2 = 0;
+	ch = '\0';
 	
 #ifndef STD_SETTINGS
 	for (;;){
@@ -1372,11 +1379,11 @@ void alloclrsaves()
 #endif
 	long i,j;
 	
-	lrsaves = Malloc(NLRSAVES * sizeof(node*));
+	lrsaves = (node **) Malloc(NLRSAVES * sizeof(node*));
 	for ( i = 0 ; i < NLRSAVES ; i++ ) {
-		lrsaves[i] = Malloc(sizeof(node));
-		lrsaves[i]->x = (phenotype)Malloc(endsite*sizeof(ratelike));
-		lrsaves[i]->underflows = Malloc(endsite * sizeof (double));
+		lrsaves[i] = (node *) Malloc(sizeof(node));
+		lrsaves[i]->x = (phenotype) Malloc(endsite*sizeof(ratelike));
+		lrsaves[i]->underflows = (double *) Malloc(endsite * sizeof (double));
 		for (j = 0; j < endsite; j++)
 			lrsaves[i]->x[j]  = (ratelike)Malloc(rcategs*sizeof(sitelike));
 	}

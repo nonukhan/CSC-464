@@ -1,4 +1,35 @@
 
+
+double eval_like(double sumc) {
+	unsigned int i, j, k;
+
+	// sites = # bp's per seq
+	for (i = 0; i < sites; i++) {
+		sumc = 0.0;
+		for (k = 0; k < rcategs; k++) {
+			sumc += probcat[k] * like[k];
+		}
+		sumc *= lambda;
+
+		if ((ally[i] > 0) && (location[ally[i]-1] > 0)) {
+		//	lai = location[ally[i] - 1];
+			memcpy(clai, contribution[location[ally[i] - 1] - 1], rcategs*sizeof(double));
+			for (j = 0; j < rcategs; j++) {
+				nulike[j] = ((1.0 - lambda) * like[j] + sumc) * clai[j];
+			}
+		} else {
+			for (j = 0; j < rcategs; j++) {
+				nulike[j] = ((1.0 - lambda) * like[j] + sumc);
+			}
+		}
+		memcpy(like, nulike, rcategs*sizeof(double));
+	}
+	return sumc;
+}
+
+
+
+
 double evaluate(node *p, boolean saveit)
 {
 #ifdef CALLCOUNT
@@ -9,8 +40,7 @@ double evaluate(node *p, boolean saveit)
 #endif 
 	
 	contribarr tterm;
-	double sum, sum2, sumc, y, lz, y1, z1zz, z1yy, prod12, prod1, prod2, prod3,
-	sumterm, lterm;
+	double sum, sum2, sumc, y, lz, y1, z1zz, z1yy, prod12, prod1, prod2, prod3, sumterm, lterm;
 	long i, j, k, lai;
 	node *q;
 	sitelike x1, x2;
@@ -21,13 +51,18 @@ double evaluate(node *p, boolean saveit)
 	if ( q->initialized  == false && q->tip == false)  nuview(q);
 	y = p->v;
 	lz = -y;
-	for (i = 0; i < rcategs; i++)
+
+	// categs = rcategs = 1
+	for (i = 0; i < rcategs; i++) {
 		for (j = 0; j < categs; j++) {
 			tbl[i][j]->orig_zz = exp(tbl[i][j]->ratxi * lz);
 			tbl[i][j]->z1 = exp(tbl[i][j]->ratxv * lz);
 			tbl[i][j]->z1zz = tbl[i][j]->z1 * tbl[i][j]->orig_zz;
 			tbl[i][j]->z1yy = tbl[i][j]->z1 - tbl[i][j]->z1zz;
 		}
+	}
+
+	// endsites > 1 but less than sites
 	for (i = 0; i < endsite; i++) {
 		k = category[alias[i]-1] - 1;
 		for (j = 0; j < rcategs; j++) {
@@ -42,52 +77,76 @@ double evaluate(node *p, boolean saveit)
 			}
 			memcpy(x1, p->x[i][j], sizeof(sitelike));
 			prod1 = freqa * x1[0] + freqc * x1[(long)C - (long)A] +
-			freqg * x1[(long)G - (long)A] + freqt * x1[(long)T - (long)A];
+				freqg * x1[(long)G - (long)A] + freqt * x1[(long)T - (long)A];
 			memcpy(x2, q->x[i][j], sizeof(sitelike));
 			prod2 = freqa * x2[0] + freqc * x2[(long)C - (long)A] +
-			freqg * x2[(long)G - (long)A] + freqt * x2[(long)T - (long)A];
+				freqg * x2[(long)G - (long)A] + freqt * x2[(long)T - (long)A];
 			prod3 = (x1[0] * freqa + x1[(long)G - (long)A] * freqg) *
-			(x2[0] * freqar + x2[(long)G - (long)A] * freqgr) +
-			(x1[(long)C - (long)A] * freqc + x1[(long)T - (long)A] * freqt) *
-			(x2[(long)C - (long)A] * freqcy + x2[(long)T - (long)A] * freqty);
+				(x2[0] * freqar + x2[(long)G - (long)A] * freqgr) +
+				(x1[(long)C - (long)A] * freqc + x1[(long)T - (long)A] * freqt) *
+				(x2[(long)C - (long)A] * freqcy + x2[(long)T - (long)A] * freqty);
 			prod12 = freqa * x1[0] * x2[0] +
-			freqc * x1[(long)C - (long)A] * x2[(long)C - (long)A] +
-			freqg * x1[(long)G - (long)A] * x2[(long)G - (long)A] +
-			freqt * x1[(long)T - (long)A] * x2[(long)T - (long)A];
+				freqc * x1[(long)C - (long)A] * x2[(long)C - (long)A] +
+				freqg * x1[(long)G - (long)A] * x2[(long)G - (long)A] +
+				freqt * x1[(long)T - (long)A] * x2[(long)T - (long)A];
 			tterm[j] = z1zz * prod12 + z1yy * prod3 + y1 * prod1 * prod2;
 		}
+
+		// rcategs = 1
 		sumterm = 0.0;
-		for (j = 0; j < rcategs; j++)
+		for (j = 0; j < rcategs; j++) {
 			sumterm += probcat[j] * tterm[j];
+		}
+
 		lterm = log(sumterm) + p->underflows[i] + q->underflows[i];
-		for (j = 0; j < rcategs; j++)
+
+		// rcategs = 1
+		for (j = 0; j < rcategs; j++) {
 			clai[j] = tterm[j] / sumterm;
+		}
+
 		memcpy(contribution[i], clai, rcategs*sizeof(double));
-		if (saveit && !auto_ && usertree && (which <= shimotrees))
+		if (saveit && !auto_ && usertree && (which <= shimotrees)) {
 			l0gf[which - 1][i] = lterm;
+		}
 		sum += aliasweight[i] * lterm;
 	}
-	for (j = 0; j < rcategs; j++)
+
+	// rcategs = 1
+	for (j = 0; j < rcategs; j++) {
 		like[j] = 1.0;
+	}
+/*
+	// sites = # bp's per seq
 	for (i = 0; i < sites; i++) {
 		sumc = 0.0;
-		for (k = 0; k < rcategs; k++)
+		for (k = 0; k < rcategs; k++) {
 			sumc += probcat[k] * like[k];
+		}
 		sumc *= lambda;
+
 		if ((ally[i] > 0) && (location[ally[i]-1] > 0)) {
 			lai = location[ally[i] - 1];
 			memcpy(clai, contribution[lai - 1], rcategs*sizeof(double));
-			for (j = 0; j < rcategs; j++)
+			for (j = 0; j < rcategs; j++) {
 				nulike[j] = ((1.0 - lambda) * like[j] + sumc) * clai[j];
+			}
 		} else {
-			for (j = 0; j < rcategs; j++)
+			for (j = 0; j < rcategs; j++) {
 				nulike[j] = ((1.0 - lambda) * like[j] + sumc);
+			}
 		}
 		memcpy(like, nulike, rcategs*sizeof(double));
 	}
+*/
+	sumc = eval_like(sumc);
+
+	// rcategs = 1
 	sum2 = 0.0;
-	for (i = 0; i < rcategs; i++)
+	for (i = 0; i < rcategs; i++) {
 		sum2 += probcat[i] * like[i];
+	}
+
 	sum += log(sum2);
 	curtree.likelihood = sum;
 	if (!saveit || auto_ || !usertree) {
@@ -96,8 +155,9 @@ double evaluate(node *p, boolean saveit)
 #endif
 		return sum;
 	}
-	if(which <= shimotrees)
+	if(which <= shimotrees) {
 		l0gl[which - 1] = sum;
+	}
 	if (which == 1) {
 		maxwhich = 1;
 		maxlogl = sum;
@@ -143,11 +203,16 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 	q = p->back;
 	sum = 0.0;
 	lz = -y;
-	for (i = 0; i < rcategs; i++)
+
+	// rcategs and categs are 1 by default therefore nothing to make parallel :(
+	for (i = 0; i < rcategs; i++) {
 		for (j = 0; j < categs; j++) {
 			tbl[i][j]->orig_zz = exp(tbl[i][j]->rat * lz);
 			tbl[i][j]->z1 = exp(tbl[i][j]->ratxv * lz);
 		}
+	}
+
+	// bigger than 1 but less than the # of basepairs
 	for (i = 0; i < endsite; i++) {
 		k = category[alias[i]-1] - 1;
 		for (j = 0; j < rcategs; j++) {
@@ -166,18 +231,18 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 			z1c = temp * temp * z1;
 			memcpy(x1, p->x[i][j], sizeof(sitelike));
 			prod1 = freqa * x1[0] + freqc * x1[(long)C - (long)A] +
-            freqg * x1[(long)G - (long)A] + freqt * x1[(long)T - (long)A];
+           		freqg * x1[(long)G - (long)A] + freqt * x1[(long)T - (long)A];
 			memcpy(x2, q->x[i][j], sizeof(sitelike));
 			prod2 = freqa * x2[0] + freqc * x2[(long)C - (long)A] +
-            freqg * x2[(long)G - (long)A] + freqt * x2[(long)T - (long)A];
+           		freqg * x2[(long)G - (long)A] + freqt * x2[(long)T - (long)A];
 			prod3 = (x1[0] * freqa + x1[(long)G - (long)A] * freqg) *
-			(x2[0] * freqar + x2[(long)G - (long)A] * freqgr) +
-			(x1[(long)C - (long)A] * freqc + x1[(long)T - (long)A] * freqt) *
-			(x2[(long)C - (long)A] * freqcy + x2[(long)T - (long)A] * freqty);
+				(x2[0] * freqar + x2[(long)G - (long)A] * freqgr) +
+				(x1[(long)C - (long)A] * freqc + x1[(long)T - (long)A] * freqt) *
+				(x2[(long)C - (long)A] * freqcy + x2[(long)T - (long)A] * freqty);
 			prod12 = freqa * x1[0] * x2[0] +
-			freqc * x1[(long)C - (long)A] * x2[(long)C - (long)A] +
-			freqg * x1[(long)G - (long)A] * x2[(long)G - (long)A] +
-			freqt * x1[(long)T - (long)A] * x2[(long)T - (long)A];
+				freqc * x1[(long)C - (long)A] * x2[(long)C - (long)A] +
+				freqg * x1[(long)G - (long)A] * x2[(long)G - (long)A] +
+				freqt * x1[(long)T - (long)A] * x2[(long)T - (long)A];
 			aa = prod12 - prod3;
 			bb = prod3 - prod1*prod2;
 			cc = prod1 * prod2;
@@ -186,13 +251,12 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 			curveterm[i][j] = zzc * aa + z1c * bb;
 		}
 		
-		// REDUCTION
+		// rcategs = 1
 		sumterm = 0.0;
-		for (j = 0; j < rcategs; j++)
+		for (j = 0; j < rcategs; j++) {
 			sumterm += probcat[j] * term[i][j];
+		}
 		lterm = log(sumterm) + p->underflows[i] + q->underflows[i];
-		
-		// PARALLEL
 		for (j = 0; j < rcategs; j++) {
 			term[i][j] = term[i][j] / sumterm;
 			slopeterm[i][j] = slopeterm[i][j] / sumterm;
@@ -200,13 +264,14 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 		}
 		sum += aliasweight[i] * lterm;
 	}
-	
-	// PARALLEL!
+	// rcategs = 1
 	for (i = 0; i < rcategs; i++) {
 		thelike[i] = 1.0;
 		theslope[i] = 0.0;
 		thecurve[i] = 0.0;
 	}
+
+	// sites = # of basepairs in seq
 	for (i = 0; i < sites; i++) {
 		sumc = 0.0;
 		sumcs = 0.0;
@@ -226,24 +291,30 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 			memcpy(cclai, curveterm[lai - 1], rcategs*sizeof(double));
 			if (weight[i] > 1) {
 				for (j = 0; j < rcategs; j++) {
-					if (clai[j] > 0.0)
+					if (clai[j] > 0.0) {
 						clai[j] = exp(weight[i]*log(clai[j]));
-					else clai[j] = 0.0;
-					if (cslai[j] > 0.0)
+					} else {
+						clai[j] = 0.0;
+					}
+					if (cslai[j] > 0.0) {
 						cslai[j] = exp(weight[i]*log(cslai[j]));
-					else cslai[j] = 0.0;
-					if (cclai[j] > 0.0)
+					} else {
+						cslai[j] = 0.0;
+					}
+					if (cclai[j] > 0.0) {
 						cclai[j] = exp(weight[i]*log(cclai[j])); 
-					else cclai[j] = 0.0;
+					} else {
+						cclai[j] = 0.0;
+					}
 				}
 			}
 			for (j = 0; j < rcategs; j++) {
 				nulike[j] = ((1.0 - lambda) * thelike[j] + sumc) * clai[j];
 				nuslope[j] = ((1.0 - lambda) * theslope[j] + sumcs) * clai[j]
-				+ ((1.0 - lambda) * thelike[j] + sumc) * cslai[j];
+					+ ((1.0 - lambda) * thelike[j] + sumc) * cslai[j];
 				nucurve[j] = ((1.0 - lambda) * thecurve[j] + sumcc) * clai[j]
-				+ 2.0 * ((1.0 - lambda) * theslope[j] + sumcs) * cslai[j]
-				+ ((1.0 - lambda) * thelike[j] + sumc) * cclai[j];
+					+ 2.0 * ((1.0 - lambda) * theslope[j] + sumcs) * cslai[j]
+					+ ((1.0 - lambda) * thelike[j] + sumc) * cclai[j];
 			}
 		} else {
 			for (j = 0; j < rcategs; j++) {
@@ -252,6 +323,7 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 				nucurve[j] = ((1.0 - lambda) * thecurve[j] + sumcc);
 			}
 		}
+		// changes thelike, etc.
 		memcpy(thelike, nulike, rcategs*sizeof(double));
 		memcpy(theslope, nuslope, rcategs*sizeof(double));
 		memcpy(thecurve, nucurve, rcategs*sizeof(double));
@@ -259,11 +331,14 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 	sum2 = 0.0;
 	slope2 = 0.0;
 	curve2 = 0.0;
+
+	// rcategs is 1, no parallel :(
 	for (i = 0; i < rcategs; i++) {
 		sum2 += probcat[i] * thelike[i];
 		slope2 += probcat[i] * theslope[i];
 		curve2 += probcat[i] * thecurve[i];
 	}
+
 	sum += log(sum2);
 	(*like) = sum;
 	(*slope) = slope2 / sum2;
