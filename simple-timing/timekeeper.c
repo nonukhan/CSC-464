@@ -122,7 +122,7 @@ void get_stop_time(timekeeper *tk) {
 
 
 // print timestamps (in secs) to timefile. If timefile is NULL or
-//	can't be opened prints to stdout instead
+//	can't be opened prints to stderr instead
 //	Returns if the number of timestamps are unequal.
 void print_timekeeper(timekeeper *tk) {
 	int i;
@@ -137,15 +137,15 @@ void print_timekeeper(timekeeper *tk) {
 	if (tk->timefile) {
 		if( !(outfile = fopen(tk->timefile, "a+"))) {
 			perror("print_timekeeper(): failed to open timing file.\nprinting to stdout\n");
-			outfile = stdout;
+			outfile = stderr;
 		}
 	} else {
-		outfile = stdout;
+		outfile = stderr;
 	}
 	
 	for (i=0; i<tk->start_t_num; i++) {
 		// print "<gr_hook> <start_t> <stop_t>" to timefile
-		fprintf(outfile, "%s %ld.%06ld, %ld.%06ld\n",
+		fprintf(outfile, "%s, %ld.%06ld, %ld.%06ld\n",
 				tk->gr_hook,
 				(long int)tk->start[i].tv_sec, 
 				(long int)tk->start[i].tv_usec, 

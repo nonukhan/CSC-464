@@ -8,7 +8,7 @@
 #define ALL_TIME
 
 #ifdef TIMINGS
-#define TIMEFILE NULL // prints to stdout so we can pipe
+#define TIMEFILE NULL // prints to stderr so we can pipe
 #define EVAL_TS 5000
 #define SLOPECURVE_TS 100000
 #define NUVIEW_TS 50000
