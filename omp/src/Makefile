@@ -97,7 +97,7 @@ CC        = gcc
 #CFLAGS  = -g 
 #
 # An optimized one for gcc
-CFLAGS  = -O3 -fomit-frame-pointer
+CFLAGS  = -O3 -fomit-frame-pointer -fopenmp
 #
 # For some serious debugging using Gnu gcc
 #

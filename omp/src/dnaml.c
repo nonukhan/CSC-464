@@ -1,6 +1,7 @@
 
 #include "phylip.h"
 #include "seq.h"
+#include <omp.h>
 
 //#define TIMINGS
 //#define CALLCOUNT
@@ -1237,11 +1238,13 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 		
 		// REDUCTION
 		sumterm = 0.0;
+		#pragma omp parallel for reduction(+:sumterm) private(j)
 		for (j = 0; j < rcategs; j++)
 			sumterm += probcat[j] * term[i][j];
 		lterm = log(sumterm) + p->underflows[i] + q->underflows[i];
 		
 		// PARALLEL
+		#pragma omp parallel for private(j) shared(term, slopeterm, curveterm)
 		for (j = 0; j < rcategs; j++) {
 			term[i][j] = term[i][j] / sumterm;
 			slopeterm[i][j] = slopeterm[i][j] / sumterm;
@@ -1251,6 +1254,7 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 	}
 	
 	// PARALLEL!
+	#pragma omp parallel for private(i) shared(thelike, theslope, thecurve)
 	for (i = 0; i < rcategs; i++) {
 		thelike[i] = 1.0;
 		theslope[i] = 0.0;
