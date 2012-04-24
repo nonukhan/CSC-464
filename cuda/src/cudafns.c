@@ -1,30 +1,43 @@
 
 
-double eval_like(double sumc) {
-	unsigned int i, j, k;
 
-	// sites = # bp's per seq
-	for (i = 0; i < sites; i++) {
-		sumc = 0.0;
-		for (k = 0; k < rcategs; k++) {
-			sumc += probcat[k] * like[k];
-		}
-		sumc *= lambda;
+// number of threads must be the power of 2 closest to but not exceeding n
+__global__ void reduce(double* x, double* v, int n) {
+	int tid, i, ind, num_threads;
 
-		if ((ally[i] > 0) && (location[ally[i]-1] > 0)) {
-		//	lai = location[ally[i] - 1];
-			memcpy(clai, contribution[location[ally[i] - 1] - 1], rcategs*sizeof(double));
-			for (j = 0; j < rcategs; j++) {
-				nulike[j] = ((1.0 - lambda) * like[j] + sumc) * clai[j];
-			}
-		} else {
-			for (j = 0; j < rcategs; j++) {
-				nulike[j] = ((1.0 - lambda) * like[j] + sumc);
-			}
-		}
-		memcpy(like, nulike, rcategs*sizeof(double));
+	num_threads = blockDim.x;
+	tid = threadIdx.x;
+
+	v[tid] = x[tid] * v[tid];
+	// n - num_threads will be leftovers of power of 2
+	// add them so we can consider the rest of the reduction as a power of 2
+	if(tid < n - num_threads) {
+		v[tid] += x[tid + num_threads] * v[tid + num_threads];
 	}
-	return sumc;
+
+	__syncthreads();
+
+	for(i=1; i < blockDim.x; i *= 2) {
+		ind = 2 * i * tid;
+
+		if (ind < blockDim.x) {
+		    v[ind] += v[ind + i];
+		}
+		__syncthreads();
+	}
+}
+
+
+int find_closest_pow_two(int n) {
+	int next = 1;
+	int old = 1;
+
+	while (next < n) {
+		old = next;
+		next *= 2;
+	}
+	
+	return old;
 }
 
 
@@ -65,6 +78,7 @@ double evaluate(node *p, boolean saveit)
 	// endsites > 1 but less than sites
 	for (i = 0; i < endsite; i++) {
 		k = category[alias[i]-1] - 1;
+
 		for (j = 0; j < rcategs; j++) {
 			if (y > 0.0) {
 				y1 = 1.0 - tbl[j][k]->z1;
@@ -116,7 +130,7 @@ double evaluate(node *p, boolean saveit)
 	for (j = 0; j < rcategs; j++) {
 		like[j] = 1.0;
 	}
-/*
+
 	// sites = # bp's per seq
 	for (i = 0; i < sites; i++) {
 		sumc = 0.0;
@@ -138,8 +152,7 @@ double evaluate(node *p, boolean saveit)
 		}
 		memcpy(like, nulike, rcategs*sizeof(double));
 	}
-*/
-	sumc = eval_like(sumc);
+
 
 	// rcategs = 1
 	sum2 = 0.0;
