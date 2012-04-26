@@ -5,10 +5,11 @@
 
 /*   */
 //#define TIMINGS
+//#define SCTIMINGS
 //#define CALLCOUNT
 #define STD_SETTINGS
 #define ALL_TIME
-//#define CUDA
+#define CUDA
 
 #ifdef CUDA
 #include <math.h>
@@ -25,6 +26,14 @@
 #include "../../simple-timing/timekeeper.h"
 // really only the eval and slopecurve functions are interesting
 timekeeper *eval_tk, *slopecurv_tk, *nuview_tk, *smooth_tk;
+int sm_lock = 0;
+#endif
+
+#ifdef SCTIMINGS
+#define TIMEFILE NULL // prints to stdout so we can pipe
+#define SLOPECURVE_TS 100000
+#include "../../simple-timing/timekeeper.h"
+timekeeper *slopecurv_tk;
 int sm_lock = 0;
 #endif
 
@@ -153,11 +162,11 @@ vall *mp=NULL;
 
 
 /*   */
-#ifdef CUDA
-#include "cudafns.c"
+//#ifdef CUDA
+//#include "cudafns.c"
 #else
 #include "stdfns.c"
-#endif
+//#endif
 
 
 void dnamlcopy(tree *a, tree *b, long nonodes, long categs)
@@ -2832,7 +2841,7 @@ int main(int argc, Char *argv[])
 	ansi = ANSICRT;
 	grbg = NULL;
 	doinit();
-
+		
 	ttratio0 = ttratio;
 	if (ctgry)
 		openfile(&catfile,CATFILE,"categories file","r",argv[0],catfilename);
@@ -2841,11 +2850,8 @@ int main(int argc, Char *argv[])
 	if (trout)
 		openfile(&outtree,OUTTREE,"output tree file","w",argv[0],outtreename);
 	
-#ifdef TIMINGS
-	eval_tk = create_timekeeper(EVAL_TS, TIMEFILE, "ev\0");
+#ifdef SCTIMINGS
 	slopecurv_tk = create_timekeeper(SLOPECURVE_TS, TIMEFILE, "sc\0");
-	nuview_tk = create_timekeeper(NUVIEW_TS, TIMEFILE, "nv\0"); 
-	smooth_tk = create_timekeeper(SMOOTH_TS, TIMEFILE, "sm\0");
 #endif
 #ifdef ALL_TIME
 	all_tk = create_timekeeper(ALL_TS, TIMEFILE, "aa\0");
@@ -2880,20 +2886,17 @@ int main(int argc, Char *argv[])
 
 	printf("categs:%d, rcategs:%d\n", categs, rcategs);
 
-#ifdef TIMINGS
-	print_timekeeper(eval_tk);
+#ifdef SCTIMINGS
 	print_timekeeper(slopecurv_tk);
-	print_timekeeper(nuview_tk);
-	print_timekeeper(smooth_tk);
-	destroy_timekeeper(eval_tk);
-	destroy_timekeeper(nuview_tk);
-	destroy_timekeeper(smooth_tk);
 	destroy_timekeeper(slopecurv_tk);
 #endif
 #ifdef ALL_TIME
 	get_stop_time(all_tk);
 	print_timekeeper(all_tk);
 	destroy_timekeeper(all_tk);
+#endif
+#ifdef CUDA
+	gpu_free();
 #endif
 	
 	return 0;

@@ -125,9 +125,21 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 #ifdef CALLCOUNT
 	printf("slopecurve\n");
 #endif
-#ifdef TIMINGS
+#ifdef SCTIMINGS
 	get_start_time(slopecurv_tk);
 #endif
+	
+	
+	if (!tbl) {
+		printf("oh, my, god\n");
+	}
+	if (!tbl[0]) {
+		printf("oh, my, god2\n");
+	}
+	if (!tbl[0][0]) {
+		printf("oh, my, god3\n");
+	}	
+	
 	
 	/* compute log likelihood, slope and curvature at node p */
 	long i, j, k, lai;
@@ -271,7 +283,7 @@ void slopecurv(node *p,double y,double *like,double *slope,double *curve)
 	/* Expressed in terms of *slope to prevent overflow */
 	(*curve) = curve2 / sum2 - *slope * *slope;
 	
-#ifdef TIMINGS
+#ifdef SCTIMINGS
 	get_stop_time(slopecurv_tk);
 #endif
 } /* slopecurv */
